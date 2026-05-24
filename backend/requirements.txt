@@ -1,7 +1,0 @@
-# requirements.txt
-ultralytics
-opencv-python
-numpy
-torch
-torchvision
-torchaudio
