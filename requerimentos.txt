@@ -1,7 +1,7 @@
 instalar
 
 node.js - https://nodejs.org/pt-br/download
-python - https://www.python.org/downloads/release/python-3139/
+python - https://www.python.org/downloads
 
 comandos
 
@@ -14,9 +14,7 @@ comandos
     
     backend
         cd backend
-        python -m venv venv
         .\venv\Scripts\activate
         pip install --upgrade pip
-        pip install -r instalacoes_IA.txt
-        python test_image.py
+        pip install -r requirements.txt
 

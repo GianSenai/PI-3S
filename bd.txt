@@ -1,0 +1,69 @@
+// 1. niveis (cargos)
+{
+  "_id": ObjectId,
+  "cargo": "Operador" | "Supervisor"
+}
+
+// 2. setores
+{
+  "_id": ObjectId,
+  "nome_setor": "Solda A"
+}
+
+// 3. colaboradores (principal)
+{
+  "_id": ObjectId,
+  "matricula": "10234",
+  "nome_colab": "Carlos Mendes",
+  "usuario": "10234",
+  "senha": "$2y$10$...",           // hash da senha
+  "id_cargo": ObjectId,           // referência
+  "id_setor": ObjectId,           // referência
+  "role": "operador",             // campo extra para facilitar
+  "sector": "Solda A"             // campo extra (denormalizado)
+}
+
+// 4. cameras
+{
+  "_id": ObjectId,
+  "nome_cam": "Câmera Solda 01",
+  "setor_cam": ObjectId,
+  "estacao": "st-01",
+  "status_cam": "online",
+  "url_stream": "http://.../stream.mjpg"
+}
+
+// 5. estacoes (estações de trabalho)
+{
+  "_id": ObjectId,
+  "nome_estacao": "Estação Solda #01",
+  "id_setor": ObjectId,
+  "id_cam": ObjectId,
+  "id_colab": ObjectId,           // pode ser null
+  "location": "Setor A — Linha 1",
+  "epiStatus": "compliant",       // compliant, violation, paused, offline
+  "aiConfidence": 0.94,
+  "machineLocked": false,
+  "operationMinutes": 142
+}
+
+// 6. alertas (eventos)
+{
+  "_id": ObjectId,
+  "id_colab": ObjectId,
+  "id_cam": ObjectId,
+  "id_estacao": ObjectId,
+  "status_epi": "violation",
+  "status_maq": true,
+  "confidence": 0.93,
+  "mensagem": "Capacete removido durante operação",
+  "data_hora": ISODate("2025-05-28T12:00:00Z")
+}
+
+// 7. settings (configurações globais)
+{
+  "_id": "global_settings",
+  "sensitivity": 0.85,
+  "pause_seconds": 30,
+  "updated_at": ISODate(...)
+}

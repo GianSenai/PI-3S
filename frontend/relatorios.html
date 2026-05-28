@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Relatórios — EPI Guardian</title>
+<link rel="stylesheet" href="css/styles.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div data-layout="supervisor" data-active="relatorios"></div>
+<script src="js/mock-data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/realtime.js"></script>
+<script src="js/layout.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const root = document.getElementById("page-content"); if (!root) return;
+  root.innerHTML = `
+    <div class="flex-between">
+      <h2 style="margin:0">Relatórios</h2>
+      <button class="btn primary" id="btnExport">⬇ Exportar CSV</button>
+    </div>
+    <div class="grid cols-2">
+      <div class="card"><h3>Conformidade (7 dias)</h3><canvas id="chart1" height="120"></canvas></div>
+      <div class="card"><h3>Violações por operador</h3><canvas id="chart2" height="120"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Histórico de eventos</h3>
+      <table class="table"><thead><tr>
+        <th>Data/Hora</th><th>Estação</th><th>Operador</th><th>Tipo</th><th>Mensagem</th>
+      </tr></thead><tbody id="evRows"></tbody></table>
+    </div>`;
+
+  const trend = await tryApi(() => API.getComplianceTrend(), MOCK.trend);
+  new Chart(chart1, { type:"line",
+    data:{ labels:trend.map(t=>t.day),
+      datasets:[
+        { label:"Conformidade %", data:trend.map(t=>t.conformidade), borderColor:"#22c55e", backgroundColor:"rgba(34,197,94,.15)", tension:.35, fill:true },
+        { label:"Violações",     data:trend.map(t=>t.violacoes),    borderColor:"#ef4444", backgroundColor:"rgba(239,68,68,.15)", tension:.35, fill:true },
+      ]}, options:{ plugins:{legend:{labels:{color:"#e6edf3"}}}, scales:{x:{ticks:{color:"#8b97a7"}},y:{ticks:{color:"#8b97a7"}}}} });
+
+  const viols = await tryApi(() => API.getViolationsByEmployee(),
+    MOCK.employees.filter(e=>e.role==="operador").map(e=>({name:e.name.split(" ")[0], violacoes:Math.round(Math.random()*9)})));
+  new Chart(chart2, { type:"bar",
+    data:{ labels:viols.map(v=>v.name), datasets:[{ label:"Violações", data:viols.map(v=>v.violacoes), backgroundColor:"#3ba7ff" }]},
+    options:{ plugins:{legend:{labels:{color:"#e6edf3"}}}, scales:{x:{ticks:{color:"#8b97a7"}},y:{ticks:{color:"#8b97a7"}}}} });
+
+  const events = await tryApi(() => API.listEvents(), MOCK.events);
+  document.getElementById("evRows").innerHTML = events.map(e=>{
+    const st=findStation(e.stationId), emp=findEmployee(e.employeeId);
+    return `<tr><td style="font-family:monospace">${new Date(e.timestamp).toLocaleString("pt-BR")}</td>
+      <td>${st?.name||"—"}</td><td>${emp?.name||"—"}</td><td>${e.type}</td><td>${e.message}</td></tr>`;
+  }).join("");
+
+  document.getElementById("btnExport").onclick = () => {
+    const header = "data,estacao,operador,tipo,mensagem\n";
+    const rows = events.map(e=>{
+      const st=findStation(e.stationId), emp=findEmployee(e.employeeId);
+      return `${e.timestamp},${st?.name||""},${emp?.name||""},${e.type},"${e.message}"`;
+    }).join("\n");
+    const blob = new Blob([header+rows], {type:"text/csv"});
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "epi-eventos.csv"; a.click();
+  };
+});
+</script>
+</body>
+</html>

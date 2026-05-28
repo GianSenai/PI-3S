@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Configurações — EPI Guardian</title>
+<link rel="stylesheet" href="css/styles.css"/>
+</head>
+<body>
+<div data-layout="supervisor" data-active="configuracoes"></div>
+<script src="js/mock-data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/realtime.js"></script>
+<script src="js/layout.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const root = document.getElementById("page-content"); if (!root) return;
+  const cfg = await tryApi(() => API.getSettings(), { sensitivity:0.85, pauseSeconds:30 });
+
+  root.innerHTML = `
+    <div class="card">
+      <h3>Parâmetros da IA (YOLOv8)</h3>
+      <div class="field">
+        <label>Sensibilidade: <b id="sensVal">${(cfg.sensitivity*100).toFixed(0)}%</b></label>
+        <input type="range" id="sens" min="50" max="99" value="${(cfg.sensitivity*100).toFixed(0)}"/>
+      </div>
+      <div class="field">
+        <label>Tempo de pausa segura (segundos)</label>
+        <input type="number" id="pause" value="${cfg.pauseSeconds}" min="5" max="300"/>
+      </div>
+      <button class="btn primary" id="btnSave">💾 Salvar</button>
+    </div>
+
+    <div class="card">
+      <div class="flex-between"><h3 style="margin:0">Funcionários</h3>
+        <button class="btn ghost" id="btnAdd">+ Adicionar</button></div>
+      <table class="table"><thead><tr>
+        <th>Matrícula</th><th>Nome</th><th>Função</th><th>Setor</th><th></th>
+      </tr></thead><tbody id="empRows"></tbody></table>
+    </div>
+
+    <div class="card">
+      <h3>Estações cadastradas</h3>
+      <table class="table"><thead><tr>
+        <th>Nome</th><th>Setor</th><th>Local</th><th>Câmera</th><th>Status</th>
+      </tr></thead><tbody id="stRows"></tbody></table>
+    </div>`;
+
+  sens.oninput = () => sensVal.textContent = sens.value + "%";
+  btnSave.onclick = async () => {
+    await tryApi(() => API.saveSettings({ sensitivity:+sens.value/100, pauseSeconds:+pause.value }), true);
+    toast("Configurações salvas", "Parâmetros atualizados", "success");
+  };
+
+  function renderEmployees() {
+    document.getElementById("empRows").innerHTML = MOCK.employees.map(e => `
+      <tr>
+        <td style="font-family:monospace">${e.matricula}</td>
+        <td>${e.name}</td><td>${e.role}</td><td>${e.sector}</td>
+        <td><button class="btn ghost" onclick="delEmp('${e.id}')">🗑</button></td>
+      </tr>`).join("");
+  }
+  window.delEmp = async (id) => {
+    await tryApi(() => API.deleteEmployee(id), true);
+    const i = MOCK.employees.findIndex(e=>e.id===id); if (i>-1) MOCK.employees.splice(i,1);
+    renderEmployees();
+  };
+  btnAdd.onclick = async () => {
+    const name = prompt("Nome:"); if (!name) return;
+    const matricula = prompt("Matrícula:"); if (!matricula) return;
+    const sector = prompt("Setor:") || "Geral";
+    const novo = { id:"e"+Date.now(), matricula, name, role:"operador", sector };
+    await tryApi(() => API.saveEmployee(novo), true);
+    MOCK.employees.push(novo); renderEmployees();
+  };
+  renderEmployees();
+
+  document.getElementById("stRows").innerHTML = MOCK.stations.map(s => `
+    <tr><td><b>${s.name}</b></td><td>${s.sector}</td><td>${s.location}</td>
+    <td style="font-family:monospace">${s.cameraUrl}</td><td>${statusBadge(s.epiStatus)}</td></tr>`).join("");
+});
+</script>
+</body>
+</html>
