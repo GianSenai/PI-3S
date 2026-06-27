@@ -105,6 +105,6 @@ Este projeto foi desenvolvido como trabalho do **Projeto Integrador (PI)** do 3Â
 ### Membros da Equipe
 
 - **[Gian Miguel Oliveira](https://github.com/GianSenai)**
-- **Bruno Cardoso**
+- **[Bruno Cardoso](https://github.com/cardoso0411)**
 - **[Gabriel Bueno Garcia](https://github.com/gabrielgarcia1206)**
 - **Gabriel Manrique**
