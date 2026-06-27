@@ -96,3 +96,15 @@ O servidor deve enviar mensagens JSON:
 { "event":    { "id":"...", "type":"alert_triggered", "stationId":"st-02", ... } }
 ```
 Se nenhuma WS estiver definida, o frontend simula eventos a cada 4s.
+
+---
+## 👥 Equipe
+
+Este projeto foi desenvolvido como trabalho do **Projeto Integrador (PI)** do 3º semestre da **FATEC**.
+
+### Membros da Equipe
+
+- **[Gian Miguel Oliveira](https://github.com/GianSenai)**
+- **Bruno Cardoso**
+- **[Gabriel Bueno Garcia](https://github.com/gabrielgarcia1206)**
+- **Gabriel Manrique**
